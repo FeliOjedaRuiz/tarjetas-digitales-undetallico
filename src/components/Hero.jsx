@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -29,9 +30,11 @@ const Hero = () => {
             <a href="#templates" className="bg-brand-pink text-white px-10 py-5 rounded-2xl font-extrabold text-xl shadow-2xl shadow-pink-200 hover:-translate-y-1 transition-all active:scale-95">
               Explorar Catálogo
             </a>
-            <button className="bg-white text-slate-800 border-2 border-slate-100 px-10 py-5 rounded-2xl font-extrabold text-xl hover:bg-slate-50 transition-all shadow-sm">
-              ¿Cómo funciona?
-            </button>
+            <Link to="/login">
+              <button className="bg-white text-slate-800 border-2 border-slate-100 px-10 py-5 rounded-2xl font-extrabold text-xl hover:bg-slate-50 transition-all shadow-sm">
+                Login
+              </button>
+            </Link>
           </div>
 
           <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-3xl border-t border-slate-100 pt-12">
@@ -40,8 +43,8 @@ const Hero = () => {
               { label: 'Especial', val: 'San Valentín', color: '#F7067F' },
               { label: 'Elegante', val: 'Aniversarios', color: '#954892' },
               { label: 'Único', val: 'Fechas clave', color: '#0AA5AC' }
-            ].map((item, i) => (
-              <div key={i} className="flex flex-col items-center md:items-start">
+            ].map((item) => (
+              <div key={item.label} className="flex flex-col items-center md:items-start">
                 <span className="text-[10px] uppercase tracking-tighter text-slate-400 font-black mb-1">{item.label}</span>
                 <span className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>

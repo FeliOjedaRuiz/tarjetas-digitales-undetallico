@@ -9,7 +9,7 @@ export default {
       colors: {
         brand: {
           pink: '#F7067F',
-          yellow: '#FFDC42',
+          yellow: '#F9D423',
           green: '#A8CC67',
           cyan: '#0AA5AC',
           purple: '#954892',
@@ -17,10 +17,11 @@ export default {
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],
-        brand: ['Dancing Script', 'cursive'],
+        brand: ['Pacifico', 'cursive'], // Actualizado desde App.css
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #FFDC42 0%, #A8CC67 25%, #0AA5AC 50%, #954892 75%, #F7067F 100%)',
+        // Actualizado desde App.css
+        'brand-gradient': 'linear-gradient(45deg, #F7067F, #F9D423)',
       }
     }
   },

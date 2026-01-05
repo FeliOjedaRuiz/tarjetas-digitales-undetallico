@@ -41,8 +41,8 @@ const Features = () => {
           <p className="text-xl text-slate-500 max-w-2xl">Llevamos años creando sonrisas con regalos. Ahora, la distancia ya no es una barrera.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {features.map((f, i) => (
-            <div key={i} className="group bg-white p-10 rounded-[40px] shadow-sm hover:shadow-xl transition-all border border-slate-50">
+          {features.map((f) => (
+            <div key={f.title} className="group bg-white p-10 rounded-[40px] shadow-sm hover:shadow-xl transition-all border border-slate-50">
               <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 group-hover:brand-gradient group-hover:text-white transition-all">
                 {f.icon}
               </div>
