@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-pink: #F7067F;
+  --color-brand-yellow: #FFDC42;
+  --color-brand-green: #A8CC67;
+  --color-brand-cyan: #0AA5AC;
+  --color-brand-purple: #954892;
+
+  --font-sans: 'Outfit', sans-serif;
+  --font-brand: 'Dancing Script', cursive;
+
+  --background-image-brand-gradient: linear-gradient(135deg, #FFDC42 0%, #A8CC67 25%, #0AA5AC 50%, #954892 75%, #F7067F 100%);
+}
+
+@layer utilities {
+    .text-brand-gradient {
+      @apply bg-brand-gradient bg-clip-text text-transparent;
+    }
+  }
