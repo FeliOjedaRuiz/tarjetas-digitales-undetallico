@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import SVCardPage from './pages/SVCardPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import CreateCardPage from './pages/CreateCardPage';
+import AdminCreatePage from './pages/AdminCreatePage';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/SVcards" element={<SVCardPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/create-card" element={<CreateCardPage />} />
+        <Route path="/admin/panel" element={<AdminCreatePage />} />
       </Routes>
     </Layout>
   );
