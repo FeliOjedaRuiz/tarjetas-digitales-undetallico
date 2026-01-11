@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const ADMIN_USERS = (process.env.ADMIN_USERS || "admin@lavin.org")
+const ADMIN_USERS = (process.env.ADMIN_USERS)
   .split(",")
   .map((email) => email.trim());
 
@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: Number,
-      required: [true, "Es necesario número de móvil"],
     },
     email: {
       type: String,
