@@ -22,8 +22,8 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             <HashLink smooth to="/#templates" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Nuestro Catálogo</HashLink>
             <HashLink smooth to="/#how-it-works" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Servicio Digital</HashLink>
-            <a href="/" target="" rel="noopener noreferrer" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Regalos Físicos</a>
-            <Link to="/admin/login">
+            <a href="/" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Regalos Físicos</a>
+            <Link to="/login">
               <button className="bg-brand-pink text-white px-6 py-2.5 rounded-full hover:opacity-90 transition-all active:scale-95 font-bold shadow-lg shadow-pink-100">
                 Acceso Staff
               </button>
@@ -53,8 +53,8 @@ const Navbar = () => {
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <HashLink smooth to="/#templates" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Nuestro Catálogo</HashLink>
           <HashLink smooth to="/#how-it-works" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Servicio Digital</HashLink>
-          <a href="https://undetallico.es" target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Regalos Físicos</a>
-          <Link to="/admin/login" onClick={closeMenu} className="w-full text-center">
+          <a href="/" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Regalos Físicos</a>
+          <Link to="/login" onClick={closeMenu} className="w-full text-center">
              <button className="bg-brand-pink text-white w-full mt-2 px-3 py-2 rounded-md text-base font-medium">
                 Acceso Staff
               </button>

@@ -21,7 +21,6 @@ module.exports.login = (req, res, next) => {
 			}
 			user.checkPassword(req.body.password).then((match) => {
 				if (!match) {
-					console.log('AQUI');
 					return next(
 						createError(401, { errors: { password: 'Credenciales invalidas' } })
 					);
