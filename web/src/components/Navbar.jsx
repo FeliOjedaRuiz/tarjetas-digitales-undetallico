@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 import logo from '../assets/Un Detallico Logo.svg';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   // Cierra el menú móvil cuando se hace clic en un enlace
   const closeMenu = () => setIsMenuOpen(false);
@@ -23,11 +25,21 @@ const Navbar = () => {
             <HashLink smooth to="/#templates" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Nuestro Catálogo</HashLink>
             <HashLink smooth to="/#how-it-works" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Servicio Digital</HashLink>
             <a href="/" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Regalos Físicos</a>
-            <Link to="/login">
-              <button className="bg-brand-pink text-white px-6 py-2.5 rounded-full hover:opacity-90 transition-all active:scale-95 font-bold shadow-lg shadow-pink-100">
-                Acceso Staff
-              </button>
-            </Link>
+            
+            {user ? (
+              <div className="flex items-center gap-4">
+                <Link to="/dashboard" className="text-slate-600 font-semibold hover:text-brand-pink transition-colors">Mis Detallicos</Link>
+                <button onClick={logout} className="bg-slate-100 text-slate-600 px-4 py-2 rounded-full hover:bg-slate-200 transition-all font-bold text-sm">
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button className="bg-brand-pink text-white px-6 py-2.5 rounded-full hover:opacity-90 transition-all active:scale-95 font-bold shadow-lg shadow-pink-100">
+                  Acceso Staff
+                </button>
+              </Link>
+            )}
           </div>
 
           {/* Botón del menú móvil */}
@@ -54,11 +66,21 @@ const Navbar = () => {
           <HashLink smooth to="/#templates" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Nuestro Catálogo</HashLink>
           <HashLink smooth to="/#how-it-works" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Servicio Digital</HashLink>
           <a href="/" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Regalos Físicos</a>
-          <Link to="/login" onClick={closeMenu} className="w-full text-center">
-             <button className="bg-brand-pink text-white w-full mt-2 px-3 py-2 rounded-md text-base font-medium">
-                Acceso Staff
+          
+          {user ? (
+            <>
+              <Link to="/dashboard" onClick={closeMenu} className="text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">Mis Detallicos</Link>
+              <button onClick={() => { logout(); closeMenu(); }} className="w-full text-left text-slate-600 hover:bg-slate-100 hover:text-brand-pink block px-3 py-2 rounded-md text-base font-medium">
+                Salir
               </button>
-          </Link>
+            </>
+          ) : (
+            <Link to="/login" onClick={closeMenu} className="w-full text-center">
+              <button className="bg-brand-pink text-white w-full mt-2 px-3 py-2 rounded-md text-base font-medium">
+                  Acceso Staff
+                </button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

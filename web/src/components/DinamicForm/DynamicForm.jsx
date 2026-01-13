@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import photosService from '../../services/photos';
+import ImageUploadField from './ImageUploadField';
+import api from '../../services/base-api';
 
 /**
  * DynamicForm - Renderiza campos dinámicos basados en la estructura de una Plantilla
@@ -12,7 +13,6 @@ import photosService from '../../services/photos';
  * - onPhotosChange: Callback cuando cambian las fotos (galleries o imágenes)
  */
 export default function DynamicForm({ template, formData, onChange, onPhotosChange, error }) {
-  const [uploadingFields, setUploadingFields] = useState({});
 
   if (!template || !template.structure || template.structure.length === 0) {
     return <div className="text-center py-8 text-slate-500">No hay campos configurados para esta plantilla</div>;
@@ -26,60 +26,31 @@ export default function DynamicForm({ template, formData, onChange, onPhotosChan
     });
   };
 
-  // Helper para subir archivo y actualizar galería
-  const handleFileUpload = async (fieldKey, files, isMultiple = false) => {
-    if (!files || files.length === 0) return;
-
+  // Helper para borrar imagen de Cloudinary (Limpieza)
+  const deleteImageFromCloud = async (url) => {
+    if (!url) return;
     try {
-      setUploadingFields(prev => ({ ...prev, [fieldKey]: true }));
-
-      const uploadedUrls = [];
-
-      for (const file of files) {
-        const formDataObj = new FormData();
-        formDataObj.append('file', file);
-
-        const response = await photosService.upload(formDataObj);
-        const uploadedUrl = response.data?.url || response.data?.secure_url;
-
-        if (uploadedUrl) {
-          uploadedUrls.push(uploadedUrl);
-        }
-      }
-
-      if (isMultiple) {
-        // Para image_array, concatenar con las existentes
-        const currentArray = formData[fieldKey] || [];
-        const newArray = [...currentArray, ...uploadedUrls];
-        updateField(fieldKey, newArray);
-      } else {
-        // Para image, solo una URL
-        updateField(fieldKey, uploadedUrls[0] || '');
-      }
-
-      // Notificar cambios de fotos si existe callback
-      if (onPhotosChange) {
-        onPhotosChange(fieldKey);
-      }
-    } catch (err) {
-      console.error(`Error al subir archivo para ${fieldKey}:`, err);
-    } finally {
-      setUploadingFields(prev => ({ ...prev, [fieldKey]: false }));
+      await api.delete('/upload', { data: { url } });
+    } catch (error) {
+      console.error("No se pudo borrar la imagen antigua:", error);
     }
   };
 
   // Helper para eliminar una imagen de una galería
   const removeImageFromArray = (fieldKey, index) => {
     const currentArray = formData[fieldKey] || [];
+    const imageToDelete = currentArray[index]; // Capturamos la URL antes de borrar
     const newArray = currentArray.filter((_, i) => i !== index);
     updateField(fieldKey, newArray);
+    
+    // Borramos de Cloudinary
+    deleteImageFromCloud(imageToDelete);
   };
 
   // Renderizar cada campo según su tipo
   const renderField = (field) => {
     const { key, label, type, placeholder, helpText, required, maxItems } = field;
     const value = formData[key] || (type === 'image_array' ? [] : '');
-    const isUploading = uploadingFields[key];
 
     switch (type) {
       case 'text':
@@ -119,42 +90,18 @@ export default function DynamicForm({ template, formData, onChange, onPhotosChan
 
       case 'image':
         return (
-          <div key={key} className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <div className="flex flex-wrap gap-3 items-start">
-              {value && (
-                <div className="relative w-24 h-24 rounded overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={value} alt={`${key}-preview`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => updateField(key, '')}
-                    className="absolute top-1 right-1 bg-white/90 hover:bg-white rounded-full p-1 text-red-600 text-lg"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-
-              <label className={`w-24 h-24 flex items-center justify-center border-2 border-dashed rounded cursor-pointer bg-slate-50 hover:bg-slate-100 transition ${
-                isUploading ? 'opacity-50 pointer-events-none' : ''
-              }`}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => handleFileUpload(key, e.target.files)}
-                  className="hidden"
-                  disabled={isUploading}
-                />
-                <div className="text-center text-xs text-slate-500">
-                  {isUploading ? 'Subiendo...' : 'Subir'}
-                </div>
-              </label>
-            </div>
-            {helpText && <p className="text-xs text-slate-500 mt-1">{helpText}</p>}
-          </div>
+          <ImageUploadField
+            key={key}
+            label={label}
+            value={value}
+            onChange={(newUrl) => {
+              // Si ya había una imagen y es diferente, borramos la vieja
+              if (value && value !== newUrl) {
+                deleteImageFromCloud(value);
+              }
+              updateField(key, newUrl);
+            }}
+          />
         );
 
       case 'image_array': {
@@ -168,7 +115,7 @@ export default function DynamicForm({ template, formData, onChange, onPhotosChan
               {label} — máximo {maxAllowed}
               {required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <div className="flex flex-wrap gap-3 items-start">
+            <div className="flex flex-wrap gap-3 items-start mb-3">
               {imageArray.map((imageUrl, index) => (
                 <div
                   key={index}
@@ -185,24 +132,25 @@ export default function DynamicForm({ template, formData, onChange, onPhotosChan
                 </div>
               ))}
 
-              {canAddMore && (
-                <label className={`w-24 h-24 flex items-center justify-center border-2 border-dashed rounded cursor-pointer bg-slate-50 hover:bg-slate-100 transition ${
-                  isUploading ? 'opacity-50 pointer-events-none' : ''
-                }`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={e => handleFileUpload(key, e.target.files, true)}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                  <div className="text-center text-xs text-slate-500">
-                    {isUploading ? 'Subiendo...' : 'Añadir'}
-                  </div>
-                </label>
-              )}
             </div>
+
+            {canAddMore && (
+              <ImageUploadField
+                label={imageArray.length > 0 ? "Añadir más imágenes" : "Subir imágenes"}
+                value=""
+                multiple={true}
+                onChange={(urls) => {
+                  // Aseguramos que sea array (por si acaso devuelve string)
+                  const newUrls = Array.isArray(urls) ? urls : [urls];
+                  // Concatenamos con lo que ya había
+                  const newArray = [...imageArray, ...newUrls];
+                  // Opcional: Podrías recortar el array si excede maxAllowed aquí
+                  updateField(key, newArray.slice(0, maxAllowed));
+                  if (onPhotosChange) onPhotosChange(key);
+                }}
+              />
+            )}
+            
             {helpText && <p className="text-xs text-slate-500 mt-1">{helpText}</p>}
             <p className="text-xs text-slate-500 mt-1">
               {imageArray.length} / {maxAllowed} fotos

@@ -4,7 +4,7 @@ module.exports = [
     slug: 'master-template',
     description: 'Plantilla base con sistema de diseño avanzado y todos los campos.',
     thumbnailUrl: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
-    categories: ['Pruebas', 'Master'],
+    categories: ['Master'],
     price: 0,
     isPremium: false,
 
@@ -24,10 +24,16 @@ module.exports = [
 
     structure: [
       {
+        key: 'coverImage',
+        label: 'Foto de Portada (Regalo)',
+        type: 'image',
+        required: true
+      },
+      {
         key: 'mainTitle',
-        label: 'Título Principal',
+        label: 'Título Principal (Hero)',
         type: 'text',
-        placeholder: 'Feliz Día',
+        placeholder: 'Para ti, con todo mi amor',
         required: true
       },
       {
@@ -37,37 +43,46 @@ module.exports = [
         placeholder: 'Escribe aquí tu mensaje bonito...',
         required: true
       },
-       {
-        key: 'finalMessage',
-        label: 'Mensaje Final',
-        type: 'text',
-        placeholder: 'Te amo con todo mi corazón',
-        required: true
-      },
-      {
-        key: 'coverImage',
-        label: 'Foto de Portada',
-        type: 'image',
-        required: true
-      },
       {
         key: 'gallery',
-        label: 'Galería',
+        label: 'Galería de Fotos',
         type: 'image_array',
         maxItems: 8,
         required: false
       },
       {
-        key: 'song',
-        label: 'Canción Spotify',
-        type: 'spotify_url',
+        key: 'video',
+        label: 'Enlace a video de YouTube',
+        type: 'youtube_url',
         required: false
       },
       {
-        key: 'video',
-        label: 'Enlace a video de youTube',
-        type: 'youtube_url',
+        key: 'videoCaption',
+        label: 'Título del Video',
+        type: 'text',
+        placeholder: 'Nuestra canción',
         required: false
+      },
+      {
+        key: 'finalMessage',
+        label: 'Mensaje Final',
+        type: 'text',
+        placeholder: 'Gracias por ser mi persona favorita',
+        required: true
+      },
+      {
+        key: 'finalSubtitle',
+        label: 'Subtítulo Final',
+        type: 'text',
+        placeholder: 'Feliz San Valentín 💕',
+        required: false
+      },
+      {
+        key: 'song',
+        label: 'Música (Spotify o MP3)',
+        type: 'spotify_url',
+        required: false,
+        helpText: 'Pega un enlace de Spotify para mostrar el reproductor, o un enlace directo .mp3 para reproducción automática al abrir.'
       }
     ]
   }

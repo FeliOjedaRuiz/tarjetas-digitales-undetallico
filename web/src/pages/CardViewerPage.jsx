@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import cardsService from '../services/cards';
-import MasterTemplate from '../components/templates/MasterTemplate';
-
-// Mapeo de templates disponibles
-const TEMPLATES = {
-  'master-template': MasterTemplate,
-  'default': MasterTemplate
-};
+import { getTemplateComponent } from '../utils/designMapper';
 
 const CardViewerPage = () => {
   const { slug } = useParams();
@@ -74,8 +68,8 @@ const CardViewerPage = () => {
   }
 
   // Obtener el slug del template para mapear el componente
-  const templateSlug = card.templateId?.slug || 'default';
-  const SelectedTemplate = TEMPLATES[templateSlug] || TEMPLATES['default'];
+  const templateSlug = card.templateId?.slug;
+  const SelectedTemplate = getTemplateComponent(templateSlug);
 
   // Renderizar el template seleccionado
   return <SelectedTemplate card={card} />;

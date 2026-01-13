@@ -16,7 +16,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-      navigate('/admin/create'); 
+      navigate('/create'); 
     } catch (err) {
       console.error(err);
       setError('Credenciales incorrectas');

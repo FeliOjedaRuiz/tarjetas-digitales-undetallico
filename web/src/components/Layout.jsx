@@ -1,11 +1,16 @@
+import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
+import Header from "./Header";
 import Footer from "./Footer";
 
 const Layout = ({ children }) => {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
   return (
-    <div className="max-w-7xl mx-auto text-center">
-      <Navbar />
-      <main className="pt-20">
+    <div className="flex flex-col min-h-screen bg-slate-50">
+      {isHome ? <Navbar /> : <Header />}
+      <main className="flex-grow">
         {children}
       </main>
       <Footer />
