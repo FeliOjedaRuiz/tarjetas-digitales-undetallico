@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import cardsService from '../services/cards';
+import { toast } from 'sonner';
+import ConfirmModal from '../components/ConfirmModal';
+import CardSkeleton from '../components/CardSkeleton';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const DashboardPage = () => {
 	const [cards, setCards] = useState([]);
+	const [page, setPage] = useState(1);
+	const [totalPages, setTotalPages] = useState(1);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+
+	// Estado para el modal de confirmación
+	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [cardToDelete, setCardToDelete] = useState(null);
 
 	useEffect(() => {
 		const loadCards = async () => {
 			try {
 				setLoading(true);
-				// Asumimos que el servicio tiene un método para traer las tarjetas del usuario
-				const response = await cardsService.getCards();
-				// Manejo robusto: verifica si es un array directo o si viene dentro de .data o .cards
-				const data = Array.isArray(response)
-					? response
-					: response.data || response.cards || [];
-				setCards(data);
+				// Enviamos la página actual al servicio
+				const response = await cardsService.getCards(page);
+				
+				// Manejamos la respuesta paginada o plana (por compatibilidad)
+				if (response.data && Array.isArray(response.data)) {
+					setCards(response.data);
+					setTotalPages(response.pages || 1);
+				} else if (Array.isArray(response)) {
+					// Fallback si el backend no devuelve paginación
+					setCards(response);
+				} else {
+					setCards([]);
+				}
 			} catch (err) {
 				setError('No se pudieron cargar tus tarjetas.');
 				console.error(err);
@@ -27,35 +43,61 @@ const DashboardPage = () => {
 		};
 
 		loadCards();
-	}, []);
+	}, [page]); // Recargamos cuando cambia la página
 
-	const handleDelete = async (id) => {
-		if (
-			window.confirm(
-				'¿Estás seguro de que quieres eliminar esta tarjeta? Esta acción no se puede deshacer.'
-			)
-		) {
-			try {
-				await cardsService.remove(id);
-				// Actualizamos el estado local filtrando la tarjeta eliminada
-				setCards((currentCards) =>
-					currentCards.filter((card) => card.id !== id && card._id !== id)
-				);
-			} catch (err) {
-				console.error(err);
-				alert('Hubo un error al eliminar la tarjeta.');
-			}
+	const handleDeleteClick = (id) => {
+		setCardToDelete(id);
+		setDeleteModalOpen(true);
+	};
+
+	const confirmDelete = async () => {
+		if (!cardToDelete) return;
+		try {
+			await cardsService.remove(cardToDelete);
+			setCards((currentCards) =>
+				currentCards.filter((card) => card.id !== cardToDelete && card._id !== cardToDelete)
+			);
+			toast.success('Tarjeta eliminada correctamente');
+		} catch (err) {
+			console.error(err);
+			toast.error('Hubo un error al eliminar la tarjeta');
 		}
 	};
 
 	const handleCopyLink = (slug) => {
 		const url = `${window.location.origin}/ver/${slug}`;
 		navigator.clipboard.writeText(url);
-		alert('¡Enlace copiado al portapapeles!');
+		toast.success('¡Enlace copiado al portapapeles!');
+	};
+
+	const handlePrevPage = () => {
+		if (page > 1) {
+			setPage((prev) => prev - 1);
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+	};
+
+	const handleNextPage = () => {
+		if (page < totalPages) {
+			setPage((prev) => prev + 1);
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
 	};
 
 	if (loading) {
-		return <div className="text-center p-10">Cargando tus detallicos...</div>;
+		// Mostramos los skeletons mientras carga
+		return (
+			<div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+				{/* Replicamos la estructura del header para que no haya saltos de layout */}
+				<header className="mb-8">
+					<div className="h-10 bg-slate-200 rounded w-1/3 animate-pulse mb-2" />
+					<div className="h-4 bg-slate-200 rounded w-1/2 animate-pulse" />
+				</header>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+					{Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
+				</div>
+			</div>
+		);
 	}
 
 	if (error) {
@@ -113,8 +155,8 @@ const DashboardPage = () => {
 							<div className="flex-1 w-full overflow-hidden min-h-0">
 								<img
 									src={
-										card.templateId?.thumbnailUrl ||
-										'https://placehold.co/300x300.png'
+										getOptimizedImageUrl(card.templateId?.thumbnailUrl, 400) ||
+										'https://placehold.co/400x400.png'
 									}
 									alt={`Diseño para ${card.recipient}`}
 									className="h-full w-full object-cover"
@@ -200,7 +242,7 @@ const DashboardPage = () => {
 										</div>
 									</div>
 									<button
-										onClick={() => handleDelete(card.id || card._id)}
+										onClick={() => handleDeleteClick(card.id || card._id)}
 										className="flex items-center justify-center gap-1.5 w-full bg-white border border-red-200 text-red-500 text-xs font-semibold py-2 rounded-md hover:bg-red-50 transition-colors"
 									>
 										<svg
@@ -225,6 +267,42 @@ const DashboardPage = () => {
 					))}
 				</div>
 			)}
+
+			{/* Controles de Paginación */}
+			{totalPages > 1 && (
+				<div className="mt-12 flex justify-center items-center gap-4">
+					<button
+						onClick={handlePrevPage}
+						disabled={page === 1}
+						className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+					>
+						← Anterior
+					</button>
+					
+					<span className="text-sm font-medium text-slate-500">
+						Página {page} de {totalPages}
+					</span>
+
+					<button
+						onClick={handleNextPage}
+						disabled={page === totalPages}
+						className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+					>
+						Siguiente →
+					</button>
+				</div>
+			)}
+
+			{/* Modal de Confirmación */}
+			<ConfirmModal
+				isOpen={deleteModalOpen}
+				onClose={() => setDeleteModalOpen(false)}
+				onConfirm={confirmDelete}
+				title="¿Eliminar tarjeta?"
+				message="Esta acción no se puede deshacer. La tarjeta dejará de estar disponible para quien tenga el enlace."
+				confirmText="Sí, eliminar"
+				isDestructive={true}
+			/>
 		</div>
 	);
 };

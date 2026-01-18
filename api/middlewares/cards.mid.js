@@ -30,10 +30,6 @@ module.exports.validateTemplateStructure = (req, res, next) => {
 
                 // B) VALIDACIÓN DE TIPOS (Extra de seguridad)
                 if (userValue) {
-                    // Si es URL de Spotify, debe parecerse a una
-                    if (field.type === 'spotify_url' && !userValue.includes('spotify.com')) {
-                        errors[field.key] = 'Debe ser un enlace válido de Spotify';
-                    }
                     // Si es URL de YouTube
                     if (field.type === 'youtube_url' && !userValue.includes('youtube') && !userValue.includes('youtu.be')) {
                         errors[field.key] = 'Debe ser un enlace válido de YouTube';

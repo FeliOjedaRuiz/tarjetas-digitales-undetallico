@@ -62,7 +62,15 @@ export default function DynamicForm({
 	const renderField = (field) => {
 		const { key, label, type, placeholder, helpText, required, maxItems } =
 			field;
-		const value = formData[key] || (type === 'image_array' ? [] : '');
+
+		let value = formData[key];
+
+		// Lógica robusta: Si es booleano y es undefined, usamos el default visualmente
+		if (type === 'boolean') {
+			if (value === undefined && field.default !== undefined) value = field.default;
+		} else {
+			value = value || (type === 'image_array' ? [] : '');
+		}
 
 		switch (type) {
 			case 'text':
@@ -204,27 +212,41 @@ export default function DynamicForm({
 					</div>
 				);
 
-			case 'spotify_url':
+			case 'boolean':
 				return (
-					<div key={key} className="mb-4">
-						<label className="block text-sm font-medium mb-1">
+					<div key={key} className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
+						<label className="block text-sm font-medium text-slate-700 mb-2">
 							{label}
-							{required && <span className="text-red-500 ml-1">*</span>}
 						</label>
-						<input
-							type="url"
-							value={value}
-							onChange={(e) => updateField(key, e.target.value)}
-							placeholder={placeholder || 'https://open.spotify.com/track/...'}
-							className="w-full rounded-md border px-3 py-2 focus:ring-2 focus:ring-brand-pink focus:border-transparent"
-						/>
-						{helpText && (
-							<p className="text-xs text-slate-500 mt-1">{helpText}</p>
-						)}
+						<div className="flex items-center gap-3">
+							<div
+								onClick={() => updateField(key, !value)}
+								className={`relative w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+									value ? 'bg-brand-pink' : 'bg-slate-300'
+								}`}
+							>
+								<div
+									className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+										value ? 'translate-x-6' : 'translate-x-0'
+									}`}
+								/>
+							</div>
+							<span
+								className={`text-sm font-medium cursor-pointer select-none ${
+									value ? 'text-brand-pink' : 'text-slate-400'
+								}`}
+								onClick={() => updateField(key, !value)}
+							>
+								{value ? 'Activado' : 'Desactivado'}
+							</span>
+						</div>
 					</div>
 				);
 
 			case 'video_caption':
+				// Condición: Si existe el campo showVideo y es falso, ocultamos este campo
+				if (formData.showVideo === false) return null;
+
 				return (
 					<div key={key} className="mb-4">
 						<label className="block text-sm font-medium mb-1">
@@ -288,8 +310,8 @@ export default function DynamicForm({
 		if (filterType === 'links') {
 			return (
 				type === 'youtube_url' ||
-				type === 'spotify_url' ||
-				type === 'video_caption'
+				type === 'video_caption' ||
+				type === 'boolean'
 			);
 		}
 		return true;
@@ -301,30 +323,7 @@ export default function DynamicForm({
 
 		for (let i = 0; i < filteredFields.length; i++) {
 			const field = filteredFields[i];
-			const nextField = filteredFields[i + 1];
-
-			// Lógica de agrupación para Video URL + Video Caption
-			if (
-				field.type === 'youtube_url' &&
-				nextField &&
-				nextField.type === 'video_caption'
-			) {
-				fieldsToRender.push(
-					<div
-						key={`group-${field.key}`}
-						className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4"
-					>
-						<div className="md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-							Configuración de Video
-						</div>
-						<div className="[&>div]:mb-0">{renderField(field)}</div>
-						<div className="[&>div]:mb-0">{renderField(nextField)}</div>
-					</div>
-				);
-				i++; // Saltamos el siguiente campo porque ya lo renderizamos
-			} else {
-				fieldsToRender.push(renderField(field));
-			}
+			fieldsToRender.push(renderField(field));
 		}
 		return fieldsToRender;
 	};

@@ -13,7 +13,7 @@ const getBySlug = (slug) => http.get(`/cards/profile/${slug}`);
 
 const list = () => http.get("/cards");
 
-const getCards = () => http.get("/cards");
+const getCards = (page = 1, limit = 9) => http.get("/cards", { params: { page, limit } });
 const getDetail = (id) => http.get(`/cards/${id}`);
 const update = (id, data) => http.put(`/cards/${id}`, data);
 const remove = (id) => http.delete(`/cards/${id}`);

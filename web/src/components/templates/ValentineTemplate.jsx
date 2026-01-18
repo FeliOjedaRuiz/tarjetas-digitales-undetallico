@@ -1,5 +1,20 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
+
+// --- Helper para URL de YouTube ---
+const getYouTubeEmbedUrl = (url) => {
+	if (!url) return '';
+	const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+	const match = url.match(regExp);
+	const videoId = match && match[2].length === 11 ? match[2] : null;
+
+	if (videoId) {
+		const origin = typeof window !== 'undefined' ? window.location.origin : '';
+		return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&mute=0&controls=0&loop=1&playlist=${videoId}&origin=${origin}`;
+	}
+	return '';
+};
 
 // --- Floating Hearts Background Component ---
 const FloatingHearts = () => {
@@ -36,7 +51,7 @@ const FloatingHearts = () => {
 
 // --- Subcomponentes Internos ---
 
-const GiftCover = ({ onClick, coverImage, recipient }) => (
+const GiftCover = ({ onClick, coverImage, recipient, hasMusic }) => (
 	<div
 		onClick={onClick}
 		className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-rose-900 cursor-pointer transition-all duration-1000 ease-in-out"
@@ -44,7 +59,7 @@ const GiftCover = ({ onClick, coverImage, recipient }) => (
 		<div className="absolute inset-0">
 			{coverImage ? (
 				<img
-					src={coverImage}
+					src={getOptimizedImageUrl(coverImage, 1200)}
 					alt="Cover"
 					className="w-full h-full object-cover opacity-50"
 				/>
@@ -56,19 +71,24 @@ const GiftCover = ({ onClick, coverImage, recipient }) => (
 
 		<FloatingHearts />
 		<h1
-			className="text-4xl text-center md:text-6xl font-serif text-white mb-20 tracking-wide drop-shadow-lg"
+			className="text-4xl text-center md:text-6xl font-serif text-white mb-14 tracking-wide drop-shadow-lg"
 			style={{ fontFamily: "'Dancing Script', cursive" }}
 		>
 			{recipient ? `Para: ${recipient}` : 'Algo Especial'}
 		</h1>
 
 		<div className="relative z-10 text-center p-6 flex flex-col items-center">
+		{hasMusic && (
+				<p className="text-white/50 text-sm mb-10 font-light">Sube el volumen para <br />una mejor experiencia 🔊</p>
+			)}
+			<p className="text-white/90 text-sm md:text-lg font-medium uppercase mb-12 tracking-[0.2em] animate-pulse">
+				Toca para abrir tu corazón
+			</p>
 			<div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-white/40 shadow-[0_0_30px_rgba(255,182,193,0.5)] animate-heartbeat">
 				<span className="text-4xl text-white">❤</span>
 			</div>
-			<p className="text-white/90 text-sm md:text-lg font-medium uppercase tracking-[0.2em] animate-pulse">
-				Toca para abrir tu corazón
-			</p>
+			
+			
 		</div>
 	</div>
 );
@@ -77,6 +97,7 @@ GiftCover.propTypes = {
 	onClick: PropTypes.func.isRequired,
 	coverImage: PropTypes.string,
 	recipient: PropTypes.string,
+	hasMusic: PropTypes.bool,
 };
 
 const SectionDivider = () => (
@@ -98,7 +119,8 @@ const SectionDivider = () => (
 
 const ValentineTemplate = ({ card }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const audioRef = useRef(null);
+	const [isPlaying, setIsPlaying] = useState(false);
+	const playerRef = useRef(null);
 
 	const { content, recipient, sender, templateId } = card || {};
 	const styles = templateId?.defaultStyles || {};
@@ -110,22 +132,40 @@ const ValentineTemplate = ({ card }) => {
 		finalSubtitle,
 		coverImage,
 		gallery = [],
-		song,
-		video,
+		musicUrl,
+		showVideo,
 		videoCaption,
 	} = content || {};
 
-	const isSpotify = song && song.includes('spotify.com');
-
 	const handleOpen = () => {
 		setIsOpen(true);
-		if (audioRef.current && song && !isSpotify) {
+		// Iniciar reproducción de YouTube al abrir
+		if (musicUrl && playerRef.current) {
 			setTimeout(() => {
-				audioRef.current
-					.play()
-					.catch((e) => console.log('Autoplay bloqueado:', e));
-			}, 500);
+				playerRef.current.contentWindow.postMessage(
+					'{"event":"command","func":"playVideo","args":""}',
+					'*'
+				);
+				setIsPlaying(true);
+			}, 300);
 		}
+	};
+
+	const togglePlay = () => {
+		if (!playerRef.current) return;
+		const action = isPlaying ? 'pauseVideo' : 'playVideo';
+		playerRef.current.contentWindow.postMessage(
+			JSON.stringify({ event: 'command', func: action, args: '' }),
+			'*'
+		);
+		setIsPlaying(!isPlaying);
+	};
+
+	const restartMusic = () => {
+		if (!playerRef.current) return;
+		playerRef.current.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }), '*');
+		playerRef.current.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+		setIsPlaying(true);
 	};
 
 	const fontTitle = styles.fonts?.title || "'Playfair Display', serif";
@@ -140,6 +180,7 @@ const ValentineTemplate = ({ card }) => {
 					onClick={handleOpen}
 					coverImage={coverImage}
 					recipient={recipient}
+					hasMusic={!!musicUrl}
 				/>
 			)}
 
@@ -175,7 +216,7 @@ const ValentineTemplate = ({ card }) => {
 				</section>
 
 				{/* 2. Message Section */}
-				<section className="max-w-3xl px-6 py-12 text-center bg-white/40 backdrop-blur-sm rounded-[3rem] border border-rose-100 mx-auto">
+				<section className="max-w-3xl px-6 py-12 text-center mx-auto">
 					<p className="text-xl md:text-2xl leading-relaxed text-slate-700 whitespace-pre-line">
 						{message}
 					</p>
@@ -203,7 +244,7 @@ const ValentineTemplate = ({ card }) => {
 										}`}
 									>
 										<img
-											src={typeof img === 'string' ? img : img.url}
+											src={getOptimizedImageUrl(typeof img === 'string' ? img : img.url, 800)}
 											alt={`Recuerdo ${idx}`}
 											className="w-full h-full object-cover"
 										/>
@@ -215,7 +256,7 @@ const ValentineTemplate = ({ card }) => {
 				)}
 
 				{/* 4. Video Section */}
-				{video && (
+				{musicUrl && showVideo && (
 					<>
 						<SectionDivider />
 						<section className="max-w-4xl mx-auto px-4 py-8 text-center">
@@ -227,27 +268,13 @@ const ValentineTemplate = ({ card }) => {
 									{videoCaption}
 								</h3>
 							)}
-							<div className="relative pt-[56.25%] rounded-[2.5rem] overflow-hidden shadow-2xl bg-black border-4 border-white">
+							<div className="relative pt-[56.25%] rounded-[1rem] overflow-hidden shadow-2xl bg-black border-4 border-white">
 								<iframe
+									ref={playerRef}
+									src={getYouTubeEmbedUrl(musicUrl)}
 									className="absolute top-0 left-0 w-full h-full"
-									src={(function (url) {
-										if (!url) return '';
-										const regExp =
-											/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-										const match = url.match(regExp);
-										const videoId =
-											match && match[2].length === 11 ? match[2] : null;
-
-										if (videoId) {
-											// Usamos youtube-nocookie.com para mejor compatibilidad en móviles y desarrollo local (HTTP)
-											return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0`;
-										}
-
-										return '';
-									})(video)}
-									title="Video Especial"
-									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-									allowFullScreen
+									allow="autoplay; encrypted-media"
+									title={videoCaption || 'Video musical'}
 								/>
 							</div>
 						</section>
@@ -291,29 +318,56 @@ const ValentineTemplate = ({ card }) => {
 								href="/"
 								className="hover:text-rose-500 hover:underline transition-all"
 							>
-								Un Detallico
+								Un Detallico Tarjetas
 							</a>
 						</p>
 					</div>
 				</section>
 			</div>
 
-			{/* Música */}
-			{song && (
+			{/* Sistema de Audio YouTube */}
+			{musicUrl && (
 				<>
-					{!isSpotify && <audio ref={audioRef} src={song} loop />}
-					{isSpotify && isOpen && (
-						<div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 z-40">
-							<div className="bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-2xl border border-rose-100">
-								<iframe
-									style={{ borderRadius: '12px' }}
-									src={song.replace('/track/', '/embed/track/')}
-									width="100%"
-									height="80"
-									frameBorder="0"
-									allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-									loading="lazy"
-								></iframe>
+					{/* Iframe oculto SOLO si el video NO se muestra en el contenido */}
+					{!showVideo && (
+						<div className="opacity-0 pointer-events-none w-1 h-1 fixed bottom-0 right-0">
+							<iframe
+								ref={playerRef}
+								src={getYouTubeEmbedUrl(musicUrl)}
+								className="w-full h-full"
+								allow="autoplay; encrypted-media"
+								title="Background Music"
+							/>
+						</div>
+					)}
+
+					{/* Controles Flotantes */}
+					{isOpen && (
+						<div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-700">
+							<div className="bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-rose-100 flex gap-1">
+								<button
+									onClick={togglePlay}
+									className="w-10 h-10 flex items-center justify-center rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+								>
+									{isPlaying ? (
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+											<path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
+										</svg>
+									) : (
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+											<path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+										</svg>
+									)}
+								</button>
+								<button
+									onClick={restartMusic}
+									className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors"
+									title="Reiniciar música"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+										<path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+									</svg>
+								</button>
 							</div>
 						</div>
 					)}

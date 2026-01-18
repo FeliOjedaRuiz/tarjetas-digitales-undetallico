@@ -7,14 +7,15 @@ const FieldConfigSchema = new mongoose.Schema({
     type: String,
     enum: [
       'text', 'textarea', 'image', 'image_array',
-      'youtube_url', 'spotify_url', 'video_file', 'video_caption'
+      'youtube_url', 'video_file', 'video_caption', 'boolean'
     ],
     required: true
   },
   required: { type: Boolean, default: false },
   placeholder: { type: String },
   helpText: { type: String },
-  maxItems: { type: Number }
+  maxItems: { type: Number },
+  default: { type: mongoose.Schema.Types.Mixed } // Permitimos guardar valores por defecto (ej: true)
 }, { _id: false });
 
 const TemplateSchema = new mongoose.Schema({

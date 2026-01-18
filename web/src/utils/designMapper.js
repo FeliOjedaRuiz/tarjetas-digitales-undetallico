@@ -1,10 +1,12 @@
 import MasterTemplate from '../components/templates/MasterTemplate';
 import ValentineTemplate from '../components/templates/ValentineTemplate';
+import SpringFlowersTemplate from '../components/templates/SpringFlowersTemplate';
 
 // Registro central de plantillas
 export const DESIGN_MAPPER = {
   'master-template': MasterTemplate,
   'valentine-hearts': ValentineTemplate,
+  'valentine-spring-flowers': SpringFlowersTemplate,
 };
 
 // Helper para obtener el componente de forma segura

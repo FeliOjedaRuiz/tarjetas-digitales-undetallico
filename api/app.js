@@ -5,6 +5,10 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const createError = require('http-errors');
 const secure = require('./middlewares/secure.mid');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const { apiLimiter } = require('./config/security.config');
 
 //** Load configuration */
 require('./config/db.config');
@@ -12,15 +16,18 @@ const app = express();
 
 const cors = require('./config/cors.config');
 app.use(cors);
+app.use(helmet()); // Headers de seguridad HTTP
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
+app.use(mongoSanitize()); // Previene inyección NoSQL
+app.use(xss()); // Limpia inputs HTML maliciosos
 app.use(logger('dev'));
 app.use(secure.cleanBody);
 
 //** Rutas de api un-detallico-tarjetas */
 
 const api = require('./config/routes.config');
-app.use('/api/v1', api);
+app.use('/api/v1', apiLimiter, api); // Aplicamos límite general a toda la API
 
 app.get('/*', (req, res) => {
 	res.sendFile(`${__dirname}/public/index.html`);

@@ -40,7 +40,7 @@ module.exports = [
         key: 'message',
         label: 'Dedicatoria',
         type: 'textarea',
-        placeholder: 'Escribe aquí tu mensaje bonito...',
+        placeholder: 'Mi amor, caminar a tu lado es mi regalo favorito. Gracias por ser mi refugio, mi risa y mi lugar seguro. No necesito que sea San Valentín para decirte que te amo, pero hoy celebro con más fuerza la suerte de tenerte. Eres mi presente y mi futuro.',
         required: false
       },
       {
@@ -51,16 +51,22 @@ module.exports = [
         required: false
       },
       {
-        key: 'video',
-        label: 'Enlace a video de YouTube',
+        key: 'musicUrl',
+        label: 'Enlace YouTube (Música/Video)',
         type: 'youtube_url',
         required: false
+      },
+      {
+        key: 'showVideo',
+        label: '¿Mostrar reproductor de video?',
+        type: 'boolean',
+        default: true
       },
       {
         key: 'videoCaption',
         label: 'Título del Video',
         type: 'video_caption',
-        placeholder: 'Nuestra canción',
+        placeholder: 'Nuestra canción especial',
         required: false
       },
       {
@@ -76,13 +82,6 @@ module.exports = [
         type: 'text',
         placeholder: 'Feliz San Valentín 💕',
         required: false
-      },
-      {
-        key: 'song',
-        label: 'Música (Spotify o MP3)',
-        type: 'spotify_url',
-        required: false,
-        helpText: 'Pega un enlace de Spotify para mostrar el reproductor, o un enlace directo .mp3 para reproducción automática al abrir.'
       }
     ]
   },
@@ -127,25 +126,31 @@ module.exports = [
         key: 'message',
         label: 'Tu Mensaje',
         type: 'textarea',
-        placeholder: 'Escribe aquí todo lo que sientes...',
+        placeholder: 'Mi amor, caminar a tu lado es mi regalo favorito. Gracias por ser mi refugio, mi risa y mi lugar seguro. No necesito que sea San Valentín para decirte que te amo, pero hoy celebro con más fuerza la suerte de tenerte. Eres mi presente y mi futuro.',
         required: false
       },
       {
         key: 'gallery',
         label: 'Galería de Momentos',
         type: 'image_array',
-        maxItems: 6,
+        maxItems: 8,
         required: false
       },
       {
-        key: 'video',
-        label: 'Vídeo Especial (YouTube)',
+        key: 'musicUrl',
+        label: 'Enlace YouTube (Música/Video)',
         type: 'youtube_url',
         required: false
       },
       {
+        key: 'showVideo',
+        label: '¿Mostrar reproductor de video?',
+        type: 'boolean',
+        default: true
+      },
+      {
         key: 'videoCaption',
-        label: 'Título del Vídeo',
+        label: 'Título del Video',
         type: 'video_caption',
         placeholder: 'Nuestra canción favorita',
         required: false
@@ -156,11 +161,79 @@ module.exports = [
         type: 'text',
         placeholder: 'Queria desearte: ¡Feliz San Valentín ❤️!',
         required: false
+      }
+    ]
+  },
+  {
+    name: 'Primavera de Amor',
+    slug: 'valentine-spring-flowers',
+    description: 'Diseño elegante con motivos florales en acuarela y tipografía dorada.',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1523308458373-c6f61ae1fd21?auto=format&fit=crop&q=80&w=600&h=800', // TODO: Reemplazar con captura real
+    categories: ['San Valentín'],
+    price: 0,
+    isPremium: false,
+
+    defaultStyles: {
+      colors: {
+        background: '#FFF0F5',
+        card: '#FFFFFF',
+        primary: '#D4AF37', // Dorado
+        text: '#4A4A4A'
+      },
+      fonts: {
+        title: 'Playfair Display',
+        body: 'Lato',
+        accent: 'Dancing Script'
+      }
+    },
+
+    structure: [
+      // NOTA: No incluimos 'coverImage' para que sea fija según el diseño
+      {
+        key: 'mainTitle',
+        label: 'Título Principal',
+        type: 'text',
+        placeholder: 'Nuestro amor florece cada día',
+        required: true
       },
       {
-        key: 'song',
-        label: 'Canción (Spotify o MP3)',
-        type: 'spotify_url',
+        key: 'message',
+        label: 'Dedicatoria',
+        type: 'textarea',
+        placeholder: 'Eres como la primavera: llenas de luz, color y vida todo lo que tocas. Gracias por dejarme crecer a tu lado.',
+        required: true
+      },
+      {
+        key: 'gallery',
+        label: 'Nuestros Recuerdos',
+        type: 'image_array',
+        maxItems: 8,
+        required: false
+      },
+      {
+        key: 'musicUrl',
+        label: 'Canción Especial (YouTube)',
+        type: 'youtube_url',
+        required: false
+      },
+      {
+        key: 'showVideo',
+        label: '¿Mostrar video?',
+        type: 'boolean',
+        default: true
+      },
+      {
+        key: 'videoCaption',
+        label: 'Título del Video',
+        type: 'video_caption',
+        placeholder: 'Nuestra canción',
+        required: false
+      },
+      {
+        key: 'finalMessage',
+        label: 'Despedida',
+        type: 'text',
+        placeholder: 'Te amo infinitamente',
         required: false
       }
     ]

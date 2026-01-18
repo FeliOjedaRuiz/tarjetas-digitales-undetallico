@@ -23,6 +23,10 @@ module.exports.create = (req, res, next) => {
 };
 
 module.exports.list = (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 9;
+  const skip = (page - 1) * limit;
+
   const criteria = {};
   const isAdmin = req.user.role === 'admin';
 
@@ -30,10 +34,23 @@ module.exports.list = (req, res, next) => {
     criteria.userId = req.user.id;
   }
 
-  Card.find(criteria)
-    .populate('userId', 'name email')
-    .sort({ createdAt: -1 })
-    .then((cards) => res.json(cards))
+  Promise.all([
+    Card.find(criteria)
+      .populate('userId', 'name email')
+      .populate('templateId')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Card.countDocuments(criteria)
+  ])
+    .then(([cards, total]) => {
+      res.json({
+        data: cards,
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      });
+    })
     .catch(next);
 };
 

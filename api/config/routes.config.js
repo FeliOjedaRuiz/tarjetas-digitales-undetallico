@@ -11,6 +11,7 @@ const usersMid = require('../middlewares/users.mid');
 const cardsMid = require('../middlewares/cards.mid');
 
 const fileUploader = require('../config/cloudinary.config');
+const { createContentLimiter, uploadLimiter } = require('../config/security.config');
 
 // USERS
 router.post('/users', users.create);
@@ -44,7 +45,7 @@ router.get('/templates/:id', templates.detail);
 // 1. RUTAS PÚBLICAS (Para que cualquiera vea la tarjeta con el slug)
 router.get('/cards/profile/:slug', cards.getBySlug);
 // 2. RUTAS PRIVADAS (Requieren login)
-router.post('/cards', secure.auth, secure.isAdmin, cardsMid.validateTemplateStructure, cards.create);
+router.post('/cards', secure.auth, secure.isAdmin, createContentLimiter, cardsMid.validateTemplateStructure, cards.create);
 router.get('/cards', secure.auth, secure.isAdmin, cards.list);
 router.get('/cards/:id', secure.auth, cards.detail);
 // router.patch('/cards/:id', secure.auth, cardsMid.isOwner, cards.update);
@@ -53,13 +54,10 @@ router.delete('/cards/:id', secure.auth, cards.delete);
 // UPLOADS
 router.post(
   '/upload', 
+  uploadLimiter,
   secure.auth,
   fileUploader.single('file'),
   upload.upload
 );
 
 module.exports = router;
-
-
-
-

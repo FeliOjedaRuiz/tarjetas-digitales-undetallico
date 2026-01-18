@@ -3,9 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import cardsService from '../services/cards';
 import DynamicForm from '../components/DinamicForm/DynamicForm';
 import { CATEGORIES_LIST } from '../config/categories.config';
+import { toast } from 'sonner';
 
 // 1. IMPORTAMOS EL MAPPER CENTRALIZADO
 import { getTemplateComponent } from '../utils/designMapper';
+import ConfirmModal from '../components/ConfirmModal';
 
 // Componente para la preview con escala que simula un viewport móvil
 const MOBILE_WIDTH = 375; // iPhone standard width
@@ -89,8 +91,8 @@ const getStepsForTemplate = (template) => {
 	const hasLinks = template.structure.some(
 		(f) =>
 			f.type === 'youtube_url' ||
-			f.type === 'spotify_url' ||
-			f.type === 'video_caption'
+			f.type === 'video_caption' ||
+			f.type === 'boolean'
 	);
 	if (hasLinks) steps.push(ALL_STEPS[4]);
 
@@ -98,6 +100,32 @@ const getStepsForTemplate = (template) => {
 	steps.push(ALL_STEPS[5]);
 
 	return steps;
+};
+
+// Función para llenar el formulario con sugerencias de la plantilla
+const hydrateFormWithDefaults = (template, currentForm) => {
+	if (!template || !template.structure) return currentForm;
+
+	const newForm = { ...currentForm };
+	template.structure.forEach((field) => {
+		// 1. Hidratamos textos con sus placeholders para que aparezcan por defecto en la preview y se guarden
+		if (
+			['text', 'textarea', 'video_caption', 'youtube_url'].includes(field.type) &&
+			newForm[field.key] === undefined
+		) {
+			if (field.placeholder) {
+				newForm[field.key] = field.placeholder;
+			}
+		}
+
+		// Hidratamos booleanos con su valor por defecto (ej: showVideo = true)
+		if (field.type === 'boolean' && newForm[field.key] === undefined) {
+			if (field.default !== undefined) {
+				newForm[field.key] = field.default;
+			}
+		}
+	});
+	return newForm;
 };
 
 export default function AdminCreatePage() {
@@ -111,6 +139,16 @@ export default function AdminCreatePage() {
 	const [form, setForm] = useState({});
 	const [showPreviewMobile, setShowPreviewMobile] = useState(false);
 	const [currentStep, setCurrentStep] = useState(1);
+
+	// Estado para el modal de advertencia de paso incompleto
+	const [warningModalOpen, setWarningModalOpen] = useState(false);
+	const [warningMessage, setWarningMessage] = useState('');
+	const [pendingAction, setPendingAction] = useState(null);
+	const [modalContent, setModalContent] = useState({
+		title: 'Paso incompleto',
+		confirmText: 'Continuar igual',
+		cancelText: 'Completar',
+	});
 
 	const [steps, setSteps] = useState(ALL_STEPS);
 
@@ -129,6 +167,7 @@ export default function AdminCreatePage() {
 
 				if (data.length > 0 && !selectedTemplate && !id) {
 					setSelectedTemplate(data[0]);
+					setForm((prev) => hydrateFormWithDefaults(data[0], prev));
 				}
 			} catch (err) {
 				console.error('Error fetching templates:', err);
@@ -169,7 +208,7 @@ export default function AdminCreatePage() {
 					setSelectedTemplate(card.templateId);
 				} catch (err) {
 					console.error('Error fetching card detail:', err);
-					alert('No se pudo cargar la información de la tarjeta.');
+					toast.error('No se pudo cargar la información de la tarjeta.');
 					navigate('/dashboard');
 				} finally {
 					setIsLoading(false);
@@ -216,31 +255,27 @@ export default function AdminCreatePage() {
 		if (stepId === 1) return !!selectedTemplate;
 		if (stepId === 2) return !!form.recipient && !!form.sender;
 
-		if (stepId === 3 && selectedTemplate) {
-			// Verificar si hay algún texto lleno
-			const textFields = selectedTemplate.structure.filter(
-				(f) => f.type === 'text' || f.type === 'textarea'
-			);
-			return textFields.some((f) => !!form[f.key]);
-		}
-
-		if (stepId === 4 && selectedTemplate) {
-			// Verificar si hay alguna imagen subida
-			const imageFields = selectedTemplate.structure.filter(
-				(f) => f.type === 'image'
-			);
-			return imageFields.some((f) => {
-				const val = form[f.key];
-				return Array.isArray(val) ? val.length > 0 : !!val;
-			});
-		}
-
-		if (stepId === 5) return !!form.song || !!form.video;
+		// Los pasos 3 (Mensajes), 4 (Fotos) y 5 (Multimedia) ahora son opcionales
+		// o vienen pre-rellenos con los placeholders, así que siempre permitimos avanzar.
 		return true;
 	};
 
-	// Función para avanzar
-	const handleNext = () => {
+	// Función unificada para confirmar la acción pendiente (Navegar o Enviar)
+	const handleConfirmAction = () => {
+		if (pendingAction) {
+			if (pendingAction.type === 'NAVIGATE') {
+				setCurrentStep(pendingAction.step);
+			} else if (pendingAction.type === 'SUBMIT') {
+				performSubmit();
+			}
+			setPendingAction(null);
+		}
+	};
+
+	// Función centralizada para navegar entre pasos con validación
+	const handleStepNavigation = (targetStepId) => {
+		if (targetStepId === currentStep) return;
+
 		const stepWarnings = {
 			1: 'No has seleccionado un diseño aún.',
 			2: 'Faltan los nombres del destinatario o remitente.',
@@ -249,41 +284,27 @@ export default function AdminCreatePage() {
 			5: 'No has añadido música ni vídeo.',
 		};
 
+		// Si intentamos salir de un paso incompleto
 		if (!isStepComplete(currentStep)) {
-			if (
-				!window.confirm(
-					`${stepWarnings[currentStep]} ¿Seguro que quieres continuar?`
-				)
-			) {
-				return;
-			}
-		}
-
-		// Avanzar usando el índice del array de pasos visibles
-		const currentIndex = steps.findIndex((s) => s.id === currentStep);
-		if (currentIndex !== -1 && currentIndex < steps.length - 1) {
-			setCurrentStep(steps[currentIndex + 1].id);
+			setModalContent({
+				title: 'Paso incompleto',
+				confirmText: 'Continuar igual',
+				cancelText: 'Completar',
+			});
+			setWarningMessage(`${stepWarnings[currentStep] || 'Paso incompleto.'} ¿Seguro que quieres cambiar de paso?`);
+			setPendingAction({ type: 'NAVIGATE', step: targetStepId });
+			setWarningModalOpen(true);
+		} else {
+			setCurrentStep(targetStepId);
 		}
 	};
 
-	// Función para llenar el formulario con sugerencias de la plantilla
-	const hydrateFormWithDefaults = (template, currentForm) => {
-		if (!template || !template.structure) return currentForm;
-
-		const newForm = { ...currentForm };
-		template.structure.forEach((field) => {
-			// Solo hidratamos textos y áreas de texto que estén vacíos
-			if (
-				(field.type === 'text' || field.type === 'textarea') &&
-				!newForm[field.key]
-			) {
-				// Usamos el placeholder como valor sugerido si existe
-				if (field.placeholder) {
-					newForm[field.key] = field.placeholder;
-				}
-			}
-		});
-		return newForm;
+	// Función para avanzar (Siguiente)
+	const handleNext = () => {
+		const currentIndex = steps.findIndex((s) => s.id === currentStep);
+		if (currentIndex !== -1 && currentIndex < steps.length - 1) {
+			handleStepNavigation(steps[currentIndex + 1].id);
+		}
 	};
 
 	const handleBack = () => {
@@ -293,8 +314,8 @@ export default function AdminCreatePage() {
 		}
 	};
 
-	// Función para guardar la tarjeta
-	const handleSubmit = async () => {
+	// Lógica real de envío (se llama tras validar)
+	const performSubmit = async () => {
 		if (!selectedTemplate) return;
 
 		try {
@@ -315,15 +336,95 @@ export default function AdminCreatePage() {
 				await cardsService.create(payload);
 			}
 
+			toast.success(isEditing ? 'Tarjeta actualizada con éxito' : '¡Tarjeta creada con éxito!');
 			navigate('/dashboard');
 		} catch (error) {
 			console.error('Error al guardar:', error);
 			const errorMsg =
 				error.response?.data?.message ||
 				'Hubo un error al guardar la tarjeta. Inténtalo de nuevo.';
-			alert(errorMsg);
+			toast.error(errorMsg);
 		} finally {
 			setIsLoading(false);
+		}
+	};
+
+	// Manejador del botón "Crear/Guardar" con validación global
+	const handleSubmit = () => {
+		// 1. Validaciones Bloqueantes (Obligatorias)
+		if (!selectedTemplate) {
+			toast.error('Debes seleccionar un diseño antes de continuar.');
+			setCurrentStep(1);
+			return;
+		}
+
+		if (!form.recipient || !form.sender) {
+			setModalContent({
+				title: 'Datos obligatorios',
+				confirmText: 'Ir a completar',
+				cancelText: 'Cancelar',
+			});
+			setWarningMessage(
+				'Los nombres de destinatario y remitente son obligatorios. Debes completarlos para crear la tarjeta.'
+			);
+			setPendingAction({ type: 'NAVIGATE', step: 2 });
+			setWarningModalOpen(true);
+			return;
+		}
+
+		// 2. Validaciones de Advertencia (Opcionales pero recomendadas)
+		const missingSections = [];
+
+		// Revisar Mensajes (Paso 3)
+		if (steps.some((s) => s.id === 3)) {
+			const textFields = selectedTemplate.structure.filter((f) =>
+				['text', 'textarea'].includes(f.type)
+			);
+			// Si algún campo está vacío (usuario lo borró) O sigue teniendo el texto por defecto
+			const isTextsComplete = textFields.every((f) => {
+				const val = form[f.key];
+				return !!val && (f.placeholder ? val !== f.placeholder : true);
+			});
+			if (!isTextsComplete) missingSections.push('Mensaje');
+		}
+
+		// Revisar Fotos (Paso 4)
+		if (steps.some((s) => s.id === 4)) {
+			const imageFields = selectedTemplate.structure.filter((f) =>
+				['image', 'image_array'].includes(f.type)
+			);
+			const isImagesComplete = imageFields.every((f) => {
+				const val = form[f.key];
+				return Array.isArray(val) ? val.length > 0 : !!val;
+			});
+			if (!isImagesComplete) missingSections.push('Fotos');
+		}
+
+		// Revisar Multimedia (Paso 5)
+		if (steps.some((s) => s.id === 5)) {
+			const linkFields = selectedTemplate.structure.filter(
+				(f) => f.type === 'youtube_url'
+			);
+			if (linkFields.length > 0) {
+				const isLinksComplete = linkFields.every((f) => !!form[f.key]);
+				if (!isLinksComplete) missingSections.push('Multimedia');
+			}
+		}
+
+		if (missingSections.length > 0) {
+			const names = missingSections.join(', ');
+			setModalContent({
+				title: 'Secciones vacías',
+				confirmText: 'Crear igual',
+				cancelText: 'Revisar',
+			});
+			setWarningMessage(
+				`No has completado: ${names}. ¿Quieres crear la tarjeta de todas formas?`
+			);
+			setPendingAction({ type: 'SUBMIT' });
+			setWarningModalOpen(true);
+		} else {
+			performSubmit();
 		}
 	};
 
@@ -351,7 +452,7 @@ export default function AdminCreatePage() {
 								{steps.map((step) => (
 									<div
 										key={step.id}
-										onClick={() => setCurrentStep(step.id)}
+										onClick={() => handleStepNavigation(step.id)}
 										className="relative flex flex-col items-center group cursor-pointer"
 									>
 										<div
@@ -380,7 +481,7 @@ export default function AdminCreatePage() {
 
 						{/* Contenedor del Contenido (con scroll interno y centrado modular) */}
 						<div className="flex-1 overflow-y-auto px-6 md:px-8 py-4 custom-scrollbar flex flex-col min-h-0">
-							<div className="animate-in fade-in duration-500 space-y-6 my-auto">
+							<div className="animate-in fade-in duration-500 space-y-6">
 								{/* PASO 1: ESTILO */}
 								{currentStep === 1 && (
 									<div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -777,6 +878,17 @@ export default function AdminCreatePage() {
 					</div>
 				</div>
 			</div>
+
+			{/* Modal de Advertencia para Pasos Incompletos */}
+			<ConfirmModal
+				isOpen={warningModalOpen}
+				onClose={() => setWarningModalOpen(false)}
+				onConfirm={handleConfirmAction}
+				title={modalContent.title}
+				message={warningMessage}
+				confirmText={modalContent.confirmText}
+				cancelText={modalContent.cancelText}
+			/>
 		</div>
 	);
 }
