@@ -1,6 +1,6 @@
 const Card = require('../models/card.model');
 const createError = require('http-errors');
-const { generateUniqueSlug } = require('../utils/slugGenerator'); 
+const { generateUniqueSlug } = require('../utils/slugGenerator');
 
 // 1. Crear Tarjeta
 module.exports.create = (req, res, next) => {
@@ -16,7 +16,7 @@ module.exports.create = (req, res, next) => {
     .then((card) => res.status(201).json(card))
     .catch((error) => {
       if (error.code === 11000 && error.keyPattern.urlSlug) {
-         return next(createError(409, 'Error generando el enlace único.'));
+        return next(createError(409, 'Error generando el enlace único.'));
       }
       next(error);
     });
@@ -27,22 +27,24 @@ module.exports.list = (req, res, next) => {
   const isAdmin = req.user.role === 'admin';
 
   if (!isAdmin) {
-    criteria.userId = req.user.id; 
+    criteria.userId = req.user.id;
   }
 
   Card.find(criteria)
     .populate('userId', 'name email')
+    .sort({ createdAt: -1 })
     .then((cards) => res.json(cards))
     .catch(next);
 };
 
 module.exports.detail = (req, res, next) => {
   Card.findById(req.params.id)
+    .populate('templateId')
     .then((card) => {
       if (!card) return next(createError(404, 'Tarjeta no encontrada'));
-      
+
       const isAdmin = req.user.role === 'admin';
-      
+
       if (!isAdmin && card.userId.toString() !== req.user.id) {
         return next(createError(403, 'No tienes permiso para ver esta tarjeta'));
       }
@@ -54,6 +56,7 @@ module.exports.detail = (req, res, next) => {
 module.exports.getBySlug = (req, res, next) => {
   Card.findOne({ urlSlug: req.params.slug })
     .populate('userId', 'name email')
+    .populate('templateId')
     .then((card) => {
       if (!card) {
         return next(createError(404, 'Tarjeta no encontrada'));
@@ -69,7 +72,7 @@ module.exports.update = (req, res, next) => {
   Card.findById(req.params.id)
     .then((card) => {
       if (!card) return next(createError(404, 'Tarjeta no encontrada'));
-      
+
       const isAdmin = req.user.role === 'admin';
 
       if (!isAdmin && card.userId.toString() !== req.user.id) {
@@ -86,15 +89,15 @@ module.exports.update = (req, res, next) => {
 module.exports.delete = (req, res, next) => {
   Card.findById(req.params.id)
     .then(card => {
-        if (!card) return next(createError(404, 'Tarjeta no encontrada'));
+      if (!card) return next(createError(404, 'Tarjeta no encontrada'));
 
-        const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin';
 
-        if (!isAdmin && card.userId.toString() !== req.user.id) {
-            return next(createError(403, 'No tienes permiso para eliminar esta tarjeta'));
-        }
-        
-        return Card.deleteOne({ _id: req.params.id });
+      if (!isAdmin && card.userId.toString() !== req.user.id) {
+        return next(createError(403, 'No tienes permiso para eliminar esta tarjeta'));
+      }
+
+      return Card.deleteOne({ _id: req.params.id });
     })
     .then(() => res.status(204).send())
     .catch(next);

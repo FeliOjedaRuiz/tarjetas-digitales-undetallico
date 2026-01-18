@@ -27,6 +27,15 @@ function App() {
         />
 
         <Route
+          path="/edit/:id"
+          element={
+            <PrivateRoute role="admin">
+              <CreateCardPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/dashboard"
           element={
             <PrivateRoute>

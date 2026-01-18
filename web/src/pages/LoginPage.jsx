@@ -19,7 +19,8 @@ export default function LoginPage() {
       navigate('/create'); 
     } catch (err) {
       console.error(err);
-      setError('Credenciales incorrectas');
+      const message = err.response?.data?.message || err.message || 'Credenciales incorrectas';
+      setError(message === 'Network Error' ? 'No se pudo conectar con el servidor (API)' : 'Credenciales incorrectas');
     }
   };
 

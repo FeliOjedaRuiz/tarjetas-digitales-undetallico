@@ -53,5 +53,14 @@ export const TEMPLATES = [
     previewUrl: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&q=80&w=600&h=800',
     primaryColor: '#F7067F', // Rosa marca
     secondaryColor: '#FFDC42'
+  },
+  {
+    id: 'valentine-hearts',
+    name: 'Corazones Mágicos',
+    occasion: 'San Valentín',
+    // Imagen con muchos corazones
+    previewUrl: 'https://images.unsplash.com/photo-1543332164-6e82f355badc?auto=format&fit=crop&q=80&w=600&h=800',
+    primaryColor: '#E11D48', // Rojo intenso
+    secondaryColor: '#F7067F' // Rosa marca
   }
 ];

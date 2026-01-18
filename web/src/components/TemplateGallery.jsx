@@ -13,23 +13,25 @@ const TemplateGallery = () => {
   return (
     <section id="templates" className="py-24 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-          <div className="max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
-              Nuestro Catálogo <span className="text-brand-pink">Exclusivo</span>
-            </h2>
-            <p className="text-lg text-slate-500">
-              Cada diseño ha sido creado pensando en las emociones que quieres transmitir. Previsualiza cómo quedará tu detalle digital.
-            </p>
-          </div>
+        <div className="max-w-3xl mb-12">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+            Nuestro Catálogo <span className="text-brand-pink">Exclusivo</span>
+          </h2>
+          <p className="text-lg text-slate-500">
+            Cada diseño ha sido creado pensando en las emociones que quieres transmitir. Previsualiza cómo quedará tu detalle digital.
+          </p>
+        </div>
+
+        {/* Filters bar - Now separate and sticky */}
+        <div className="sticky top-4 z-30 mb-12 bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   filter === cat
-                    ? 'bg-brand-pink text-white shadow-lg shadow-pink-100'
+                    ? 'bg-brand-pink text-white shadow-lg shadow-pink-200'
                     : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                 }`}
               >
@@ -43,9 +45,9 @@ const TemplateGallery = () => {
           {filteredTemplates.map((template) => (
             <div 
               key={template.id} 
-              className="group cursor-pointer"
+              className="group cursor-pointer relative"
             >
-              <div className="relative aspect-4/5 overflow-hidden rounded-[40px] bg-slate-100 shadow-sm border border-slate-50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-pink-100 group-hover:-translate-y-2">
+              <div className="relative aspect-4/5 overflow-hidden rounded-[40px] bg-slate-100 shadow-sm border-4 border-transparent transition-all duration-500 group-hover:border-brand-pink group-hover:shadow-2xl group-hover:shadow-pink-100 group-hover:-translate-y-2">
                 <img 
                   src={template.previewUrl} 
                   alt={template.name} 
@@ -62,7 +64,7 @@ const TemplateGallery = () => {
                   </div>
                 </div>
 
-                <div className="absolute bottom-8 left-8 right-8">
+                <div className="absolute bottom-8 left-8 right-8 text-center sm:text-left">
                   <span 
                     className="inline-block px-3 py-1 rounded-lg text-white text-[10px] font-black uppercase tracking-widest mb-3"
                     style={{ backgroundColor: template.primaryColor }}
@@ -70,12 +72,19 @@ const TemplateGallery = () => {
                     {template.occasion}
                   </span>
                   <h3 className="text-2xl font-bold text-white mb-4">{template.name}</h3>
-                  <div className="flex items-center gap-2 text-white/90 text-sm font-bold opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 duration-300">
+                  <div className="flex justify-center sm:justify-start items-center gap-2 text-white/90 text-sm font-bold opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 duration-300">
                     <span className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
                       Gestionar esta tarjeta
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Checkmark indicator on hover/selection feel */}
+              <div className="absolute -top-2 -right-2 bg-brand-pink text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
           ))}

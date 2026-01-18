@@ -1,8 +1,10 @@
 import MasterTemplate from '../components/templates/MasterTemplate';
+import ValentineTemplate from '../components/templates/ValentineTemplate';
 
 // Registro central de plantillas
 export const DESIGN_MAPPER = {
   'master-template': MasterTemplate,
+  'valentine-hearts': ValentineTemplate,
 };
 
 // Helper para obtener el componente de forma segura

@@ -15,25 +15,27 @@ const Header = () => {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 text-2xl font-bold text-brand-pink">
+            <Link to="/" className="shrink-0 text-xl md:text-2xl font-bold text-brand-pink">
               Un Detallico
             </Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {isAuthenticated ? (
               <>
                 <NavLink 
                   to="/dashboard"
-                  className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+                  className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass} whitespace-nowrap`}
                 >
-                  Mis Detallicos
+                  <span className="hidden xs:inline">Mis Detallicos</span>
+                  <span className="xs:hidden">Mis tarjetas</span>
                 </NavLink>
                 {user?.role === 'admin' && (
                   <NavLink 
                     to="/create"
-                    className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+                    className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass} whitespace-nowrap`}
                   >
-                    Crear Tarjeta
+                    <span className="hidden xs:inline">Crear Tarjeta</span>
+                    <span className="xs:hidden">Crear</span>
                   </NavLink>
                 )}
                 <button 

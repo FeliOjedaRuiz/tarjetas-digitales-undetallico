@@ -7,7 +7,7 @@ const FieldConfigSchema = new mongoose.Schema({
     type: String,
     enum: [
       'text', 'textarea', 'image', 'image_array',
-      'youtube_url', 'spotify_url', 'video_file'
+      'youtube_url', 'spotify_url', 'video_file', 'video_caption'
     ],
     required: true
   },
@@ -40,15 +40,15 @@ const TemplateSchema = new mongoose.Schema({
 
   defaultStyles: {
     colors: {
-        background: { type: String, default: '#ffffff' }, // Fondo de la página
-        card: { type: String, default: '#ffffff' },       // Fondo del contenedor del mensaje
-        primary: { type: String, default: '#000000' },    // Botones o bordes
-        text: { type: String, default: '#333333' }        // Color de la letra
+      background: { type: String, default: '#ffffff' }, // Fondo de la página
+      card: { type: String, default: '#ffffff' },       // Fondo del contenedor del mensaje
+      primary: { type: String, default: '#000000' },    // Botones o bordes
+      text: { type: String, default: '#333333' }        // Color de la letra
     },
     fonts: {
-        title: { type: String, default: 'serif' },        // Para H1, H2
-        body: { type: String, default: 'sans-serif' },    // Para párrafos
-        accent: { type: String, default: 'cursive' }      // Para firmas o detalles
+      title: { type: String, default: 'serif' },        // Para H1, H2
+      body: { type: String, default: 'sans-serif' },    // Para párrafos
+      accent: { type: String, default: 'cursive' }      // Para firmas o detalles
     }
   }
 }, {

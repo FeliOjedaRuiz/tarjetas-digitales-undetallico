@@ -27,21 +27,21 @@ module.exports = [
         key: 'coverImage',
         label: 'Foto de Portada (Regalo)',
         type: 'image',
-        required: true
+        required: false
       },
       {
         key: 'mainTitle',
         label: 'Título Principal (Hero)',
         type: 'text',
         placeholder: 'Para ti, con todo mi amor',
-        required: true
+        required: false
       },
       {
         key: 'message',
         label: 'Dedicatoria',
         type: 'textarea',
         placeholder: 'Escribe aquí tu mensaje bonito...',
-        required: true
+        required: false
       },
       {
         key: 'gallery',
@@ -59,7 +59,7 @@ module.exports = [
       {
         key: 'videoCaption',
         label: 'Título del Video',
-        type: 'text',
+        type: 'video_caption',
         placeholder: 'Nuestra canción',
         required: false
       },
@@ -68,7 +68,7 @@ module.exports = [
         label: 'Mensaje Final',
         type: 'text',
         placeholder: 'Gracias por ser mi persona favorita',
-        required: true
+        required: false
       },
       {
         key: 'finalSubtitle',
@@ -83,6 +83,85 @@ module.exports = [
         type: 'spotify_url',
         required: false,
         helpText: 'Pega un enlace de Spotify para mostrar el reproductor, o un enlace directo .mp3 para reproducción automática al abrir.'
+      }
+    ]
+  },
+  {
+    name: 'Corazones Mágicos',
+    slug: 'valentine-hearts',
+    description: 'Diseño romántico con corazones flotantes y tonos rosa/rojo.',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600&h=800',
+    categories: ['San Valentín'],
+    price: 0,
+    isPremium: false,
+
+    defaultStyles: {
+      colors: {
+        background: '#fff1f2',
+        card: '#ffffff',
+        primary: '#E11D48',
+        text: '#4c0519'
+      },
+      fonts: {
+        title: 'Dancing Script',
+        body: 'Outfit',
+        accent: 'Dancing Script'
+      }
+    },
+
+    structure: [
+      {
+        key: 'coverImage',
+        label: 'Foto de Portada',
+        type: 'image',
+        required: false
+      },
+      {
+        key: 'mainTitle',
+        label: 'Título Principal',
+        type: 'text',
+        placeholder: 'Porque eres mi persona favorita, quería decirte...',
+        required: false
+      },
+      {
+        key: 'message',
+        label: 'Tu Mensaje',
+        type: 'textarea',
+        placeholder: 'Escribe aquí todo lo que sientes...',
+        required: false
+      },
+      {
+        key: 'gallery',
+        label: 'Galería de Momentos',
+        type: 'image_array',
+        maxItems: 6,
+        required: false
+      },
+      {
+        key: 'video',
+        label: 'Vídeo Especial (YouTube)',
+        type: 'youtube_url',
+        required: false
+      },
+      {
+        key: 'videoCaption',
+        label: 'Título del Vídeo',
+        type: 'video_caption',
+        placeholder: 'Nuestra canción favorita',
+        required: false
+      },
+      {
+        key: 'finalMessage',
+        label: 'Mensaje Final',
+        type: 'text',
+        placeholder: 'Queria desearte: ¡Feliz San Valentín ❤️!',
+        required: false
+      },
+      {
+        key: 'song',
+        label: 'Canción (Spotify o MP3)',
+        type: 'spotify_url',
+        required: false
       }
     ]
   }
