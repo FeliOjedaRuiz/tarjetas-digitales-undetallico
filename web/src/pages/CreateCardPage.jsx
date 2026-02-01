@@ -54,7 +54,7 @@ const PhonePreviewFrame = ({ children }) => {
 				</div>
 			</div>
 			{/* Speaker / Camera Notch Mockup */}
-			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 md:w-32 h-4 md:h-6 bg-slate-900 rounded-b-2xl md:rounded-b-3xl z-40" />
+			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 md:w-32 h-3 md:h-4 bg-slate-900 rounded-b-2xl md:rounded-b-3xl z-40" />
 		</div>
 	);
 };

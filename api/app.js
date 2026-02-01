@@ -13,10 +13,30 @@ const { apiLimiter } = require('./config/security.config');
 //** Load configuration */
 require('./config/db.config');
 const app = express();
+app.set('trust proxy', 1); // trust first proxy
 
 const cors = require('./config/cors.config');
 app.use(cors);
-app.use(helmet()); // Headers de seguridad HTTP
+app.use(
+	helmet({
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				imgSrc: [
+					"'self'",
+					'data:',
+					'blob:',
+					'https://res.cloudinary.com',
+					'https://images.unsplash.com',
+				],
+				scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+				styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+				fontSrc: ["'self'", "https://fonts.gstatic.com"],
+			},
+		},
+		crossOriginEmbedderPolicy: false,
+	})
+);
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 app.use(mongoSanitize()); // Previene inyección NoSQL

@@ -1,0 +1,14 @@
+# Ignorar node_modules locales (se instalarán dentro de Docker)
+node_modules
+api/node_modules
+web/node_modules
+
+# Ignorar builds locales
+web/build
+api/public
+
+# Archivos de entorno y git
+.env
+.git
+.gitignore
+fly.toml

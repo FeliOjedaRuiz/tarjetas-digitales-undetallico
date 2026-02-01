@@ -38,7 +38,7 @@ const GiftCover = ({ onClick, coverImage, recipient, hasMusic }) => (
 		</div>
 
 		{/* Portada del Regalo */}
-		<div className="relative z-10 text-center p-6 animate-bounce">
+		<div className="relative z-10 text-center p-6 ">
 			<h1
 				className="text-4xl md:text-6xl text-white mb-14 tracking-wide drop-shadow-lg"
 				style={{ fontFamily: "'Playfair Display', serif" }}
@@ -50,11 +50,11 @@ const GiftCover = ({ onClick, coverImage, recipient, hasMusic }) => (
 				<p className="text-white/70 text-xs mb-10 font-light">Sube el volumen para <br /> una mejor experiencia 🔊</p>
 			)}
 
-			<p className="text-white/90 text-sm md:text-lg font-medium uppercase mb-8 tracking-[0.2em] animate-pulse">
+			<p className="text-white/90 text-sm md:text-lg font-medium uppercase mb-14 tracking-[0.2em] animate-pulse">
 				Toca para abrir
 			</p>
 
-			<div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-white/40 shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-transform hover:scale-110">
+			<div className="w-24 h-24 bg-white/20 animate-bounce backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-white/40 shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-transform hover:scale-110">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					className="h-10 w-10 text-white"
